@@ -1,0 +1,495 @@
+Attendance Tracker App — AI Agent Handoff
+Spec
+1) Product Vision
+Build a private, cross-platform attendance tracking app for a student to manage multiple subjects,
+track attendance percentage, and attach photo proofs to class sessions. The app must support fast
+capture of proof images, secure local storage, subject-wise attendance forecasting, and a clean audit
+trail for edits.
+This is not a simple checkbox tracker. It is a personal attendance system with:
+• subject management
+• lecture/lab session tracking
+• proof image capture and assignment
+• anonymous proof inbox
+• automatic attendance updates when proof is attached
+• attendance safety status based on a 75% threshold
+• private storage so proof images are not visible in the device gallery
+
+2) Target Platforms
+Required
+• Android: full feature set, including quick capture entry points and home-screen widget/shortcut
+support.
+• iOS: full app support, with quick capture opening the app directly.
+• Web/Chrome: optional companion view for dashboard and manual tracking only. Native
+camera/widget/privacy behavior may be limited on web.
+
+Platform constraint
+Do not assume the same background/widget behavior is possible on every platform.
+• Android can support a better quick-capture shortcut/widget flow.
+• iOS widgets generally need to open the app for camera capture.
+• Web should be treated as a limited companion, not the primary secure proof-capture platform.
+
+3) Core Product Goals
+1. Let the user create and edit multiple subjects.
+2. Let the user create class sessions by date for lectures and labs.
+3. Let the user mark sessions as attended or not attended.
+4. Let the user capture proof images from inside the app.
+5. Allow up to 3 proof images per class session.
+6. Compress images automatically before storing them.
+7. Store capture metadata: timestamp, date, and optional location coordinates.
+8. Keep proof images in app-private storage, not in the public gallery.
+
+1
+
+9. Provide an anonymous proof inbox for uncategorized captures.
+10. Allow assigning anonymous proofs later to a subject/session.
+11. Auto-mark attendance as present when a proof is attached.
+12. Show a per-subject attendance bar and 75% status.
+13. Prevent accidental data loss and keep an edit history.
+
+4) Non-Goals
+• Do not build a social app.
+• Do not build cloud-first syncing in the first version.
+• Do not build background silent camera capture.
+• Do not promise absolute unreadability on rooted/jailbroken devices; instead implement strong
+app-private encrypted storage.
+• Do not make the web version depend on native mobile-only behavior.
+
+5) Important Business Rules
+Attendance calculation
+Use this formula:
+• attendance percentage = attended / conducted × 100
+Where:
+• attended = number of sessions marked present
+• conducted = number of sessions that are present or absent; i.e., attended + absent
+The safe threshold is 75% by default.
+
+Safe minimum attendance
+The minimum number of attended classes needed to remain safe must be:
+• ceil(0.75 × conducted)
+
+Status colors
+• Green: attendance is at or above threshold
+• Red: attendance is below threshold
+
+Proof-to-attendance rule
+• If a proof image is attached to a class session, that session should automatically become
+Present unless the user manually overrides it.
+• If proof is removed, attendance should not be silently erased; the app should ask the user what
+to do.
+
+Date matching rule
+• Proofs must preserve their original capture timestamp.
+• A proof can normally be attached only to a session on the same calendar date.
+
+2
+
+• If the app allows reassignment, it must be explicit and must log the action.
+• Do not allow arbitrary moving of a proof across dates by default.
+
+Image limit rule
+• Maximum of 3 proof images per class session.
+
+6) Subject Creation Requirements
+When creating a subject, ask only the essential fields first.
+
+Required fields
+• Subject name
+• Subject code or short name
+• Type: lecture / lab / both
+• Attendance threshold (default 75%)
+• Planned total classes for the term, or an equivalent schedule definition
+
+Optional fields
+• Teacher name
+• Color/icon
+• Weekly lecture count
+• Weekly lab count
+• Semester start date
+• Semester end date
+• Reminder preferences
+• Notes
+
+7) Main Screens
+7.1 Dashboard
+Show:
+• total subjects
+• number of subjects below 75%
+• upcoming sessions
+• anonymous proof count
+• subject cards with attendance bars
+• quick capture button
+
+7.2 Subject Detail Screen
+Top-to-bottom layout: 1. Calendar 2. Attendance status for the selected date 3. Buttons: Attended / Not
+Attended 4. Proof list for that date with timestamps 5. Capture actions at the bottom
+The selected date should be highlighted clearly. The current day can be marked with a special indicator.
+
+3
+
+7.3 Anonymous Proof Inbox
+A dedicated screen where uncategorized proofs are stored until assigned.
+Each item should show:
+• thumbnail
+• capture timestamp
+• optional location
+• compressed size
+• assign action
+• delete action
+
+7.4 Subject Settings
+Allow editing:
+• subject metadata
+• attendance threshold
+• planned total classes
+• lecture/lab settings
+• icon/color
+• archive/delete
+
+7.5 Proof Preview / Assignment Flow
+After capture, show a quick preview card with:
+• image preview
+• timestamp
+• location if available
+• “Assign now” action
+• “Keep anonymous” action
+
+8) Subject Card UI Requirements
+Each subject card on the dashboard must show a three-number attendance bar concept:
+• Total planned classes as the full reference length
+• Conducted so far = attended + absent
+• Attended so far = present count
+
+Visual language
+• light grey for total length
+• dull green/red for conducted portion
+• bright green/red for attended portion
+
+4
+
+Status text
+Also show a compact text such as:
+• 9/12 attended
+• 75% safe
+• 1 class margin remaining
+
+9) Proof Capture Requirements
+In-app capture
+The app must support a direct camera capture flow inside the app. The flow should be fast and minimal.
+
+Quick capture
+Provide a quick entry point that opens capture immediately.
+• Android: widget and/or shortcut/deep link is preferred.
+• iOS: open the app into capture mode.
+
+After capture
+Immediately: 1. compress the image 2. save it to encrypted app-private storage 3. create metadata
+entry in the database 4. show a success popup or preview sheet 5. allow assignment to a subject/
+session
+
+Metadata to store
+• capture timestamp
+• capture date
+• optional latitude
+• optional longitude
+• optional accuracy
+• source: camera / gallery / anonymous
+• compression quality used
+• original size
+• compressed size
+• file hash
+
+10) Storage and Privacy Requirements
+Must do
+• Save proof images in app-private storage.
+• Keep them out of the public gallery.
+• Encrypt the files.
+• Store encryption keys in secure OS storage.
+• Generate thumbnails for fast display.
+• Store only references/paths in the database.
+
+5
+
+Important limitation
+The app must not claim perfect security against rooted/jailbroken devices. The proper promise is:
+• files are not visible to normal gallery apps
+• files are encrypted at rest
+• access is restricted to the app sandbox and secure key storage
+
+11) Compression Requirements
+The goal is to keep images small while still clearly showing the teacher’s face.
+
+Recommended approach
+• Resize long edge to about 1280–1600 px
+• Use JPEG or WebP
+• Start around quality 75–85
+• If size is still too large, reduce quality gradually
+• Preserve orientation correctly
+• Generate a thumbnail separately
+
+Avoid
+• over-compressing until the face becomes unclear
+• storing full-resolution images unnecessarily in the UI layer
+
+12) Data Model
+Use a relational model. The app should be structured around the following entities.
+
+12.1 Subject
+Fields:
+• id
+• name
+• code
+• color
+• icon
+• thresholdPercent
+• plannedTotalClasses
+• activeStatus
+• createdAt
+• updatedAt
+• optional teacherName
+• optional semesterStart
+• optional semesterEnd
+
+6
+
+12.2 ClassSession
+Fields:
+• id
+• subjectId
+• sessionDate
+• sessionType: lecture / lab
+• status: scheduled / conducted / cancelled
+• attendanceStatus: present / absent / unknown
+• proofCount
+• notes
+• createdAt
+• updatedAt
+
+12.3 ProofImage
+Fields:
+• id
+• sessionId nullable
+• subjectId nullable
+• captureTimestamp
+• captureDate
+• filePathEncrypted
+• thumbnailPath
+• latitude nullable
+• longitude nullable
+• accuracy nullable
+• source
+• compressionQuality
+• originalSize
+• compressedSize
+• hash
+• createdAt
+
+12.4 AttendanceAuditLog
+Fields:
+• id
+• sessionId
+• actionType
+• oldValue
+• newValue
+• reason
+• timestamp
+
+13) Attendance Logic
+Implement attendance as a service, not as UI logic.
+
+7
+
+Rules
+• Present increases attended count.
+• Absent increases conducted count but not attended count.
+• Conducted = attended + absent.
+• Unknown sessions should not count as conducted.
+• If proof is attached, default attendance to Present.
+• Manual overrides must be possible.
+
+Derived values per subject
+• attendedCount
+• absentCount
+• conductedCount
+• attendancePercentage
+• safeMinimumRequired
+• remainingMargin
+• riskState: safe / warning / danger
+
+14) Calendar and Date Behavior
+Calendar screen behavior
+• Show monthly calendar at the top
+• Mark selected date clearly
+• Highlight current day with a special indicator
+• Allow viewing previous and future dates
+
+Date editing rules
+• Past and future sessions may be created if needed
+• Proof capture timestamp remains immutable
+• Proof assignment should respect the session-date rule unless an explicit reassignment action is
+used
+
+15) Reassignment and Correction Rules
+Users must be able to correct mistakes, but safely.
+
+Allowed actions
+• move a proof from one session to another session on the same date
+• edit session attendance state
+• remove proof from a session
+• reassign anonymous proof to a subject/session
+
+Required safeguards
+• log every reassignment
+• prevent silent cross-date movement by default
+• if a user edits a historical record, preserve the audit trail
+
+8
+
+16) Notifications and Convenience Features
+Good additions to include
+• low-attendance warning when a subject drops below threshold
+• attendance forecast: how many more classes can be missed
+• anonymous proof count badge
+• upcoming class reminder
+• export reminder for backup
+
+17) Suggested Flutter Architecture
+Use a clean, maintainable structure.
+
+Recommended stack
+• Flutter for UI
+• Riverpod or Bloc for state management
+• Drift or another structured local database for relational data
+• encrypted local file storage for images
+• secure OS storage for keys
+• a calendar package for monthly view
+• a camera plugin for capture
+• an image processing/compression pipeline
+
+Layering
+Presentation
+• screens
+• widgets
+• navigation
+• UI state
+Domain
+• attendance rules
+• proof assignment rules
+• threshold calculations
+• validation logic
+Data
+• local database access
+• file storage
+• encryption
+• compression
+• metadata persistence
+
+9
+
+18) Implementation Milestones
+Milestone 1: App foundation
+• Flutter project setup
+• routing
+• theme system
+• local database schema
+• basic subject CRUD
+
+Milestone 2: Attendance engine
+• class session CRUD
+• present/absent marking
+• attendance calculations
+• dashboard cards
+• threshold indicators
+
+Milestone 3: Calendar and session detail
+• calendar view
+• per-day session detail
+• proof list by date
+• manual attendance edits
+
+Milestone 4: Capture and proof handling
+• in-app camera capture
+• compression
+• encrypted private storage
+• metadata saving
+• anonymous inbox
+
+Milestone 5: Assignment and correction
+• assign anonymous proof to subject/session
+• auto-mark present when proof is attached
+• reassign proof with logs
+• same-day enforcement logic
+
+Milestone 6: Quick capture and platform polish
+• Android quick capture shortcut/widget
+• iOS capture deep link behavior
+• thumbnail generation
+• UI polish
+• empty states
+• error handling
+
+Milestone 7: Backup and export
+• export data
+• backup restore
+
+10
+
+• audit log export
+• optional CSV/PDF export
+
+19) Testing Requirements
+Unit tests
+• attendance formula
+• threshold calculation
+• proof count limit
+• same-day assignment rule
+• auto-present rule
+• audit log creation
+
+Integration tests
+• capture photo → compress → encrypt → store → assign
+• anonymous proof → assign to subject
+• subject edit → attendance refresh
+• delete proof → confirm attendance behavior
+
+Manual QA
+• low-storage device behavior
+• app restart after anonymous capture
+• gallery visibility check
+• duplicate proof handling
+• date navigation across months
+
+20) Acceptance Criteria
+The project is complete when all of the following are true:
+• user can create, edit, archive, and delete subjects
+• user can create and edit class sessions
+• user can mark present/absent manually
+• user can capture proof images inside the app
+• app compresses images automatically
+• proof images are stored privately and encrypted
+• proof images are not visible in the public gallery
+• anonymous proofs are stored until assigned
+• proof assignment respects date rules
+• proof attachment auto-marks attendance present
+• dashboard shows subject cards with 75% status
+• the subject detail screen shows calendar, attendance controls, and proof list
+• audit logs exist for key changes
+
+11
+
+21) Build Priority
+If time is limited, build in this order: 1. subject CRUD 2. session CRUD 3. attendance logic 4. dashboard
+and subject detail UI 5. proof capture 6. compression and encrypted storage 7. anonymous inbox 8.
+assignment and reassignment rules 9. quick capture shortcut/widget 10. export and backup
+
+22) Final Instruction to the AI Agent
+Build this app as a privacy-first attendance tracker with a strong local data model, accurate
+attendance calculations, secure proof handling, and a fast capture flow.
+Do not optimize for flashy features before the core rules are correct. Do not weaken the privacy model.
+Do not store proofs in public gallery locations. Do not let the UI determine attendance rules directly;
+keep the rules in a domain service.
+The first implementation should be stable, modular, and easy to extend later for sync, cloud backup, or
+multi-device support.
+
+12
+
+
