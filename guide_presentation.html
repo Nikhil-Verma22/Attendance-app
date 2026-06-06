@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Walkthrough Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --tooltip-bg: rgba(15, 23, 42, 0.95);
+            --tooltip-border: rgba(59, 130, 246, 0.5);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+        }
+
+        .presentation-container {
+            position: relative;
+            width: 100%;
+            max-width: 440px; /* Mobile app aspect ratio */
+            height: 88vh;
+            max-height: 935px;
+            background: #000;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .slide-container {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .slide-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.4s ease-in-out;
+        }
+
+        /* Controls */
+        .controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 24px 20px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 20;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 9999px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px -1px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn:disabled {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.3);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-skip {
+            background: transparent;
+            color: var(--text-muted);
+            box-shadow: none;
+        }
+
+        .btn-skip:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        /* Indicators */
+        .indicators {
+            display: flex;
+            gap: 6px;
+            position: absolute;
+            bottom: 85px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .dot.active {
+            background: white;
+            width: 24px;
+            border-radius: 4px;
+        }
+        
+        /* Intro Overlay */
+        .intro-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 50;
+            padding: 30px;
+            transition: opacity 0.5s ease;
+        }
+        
+        .intro-overlay h1 {
+            font-size: 24px;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .intro-overlay p {
+            color: var(--text-muted);
+            font-size: 15px;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="presentation-container">
+        
+        <div class="intro-overlay" id="introOverlay">
+            <h1>Welcome to the App!</h1>
+            <p>Let's take a quick tour to show you around the key features so you can get started seamlessly.</p>
+            <button class="btn" onclick="startTour()">Start Tour</button>
+        </div>
+
+        <div class="slide-container" id="slideContainer">
+            <img src="" alt="App Screenshot" class="slide-image" id="slideImage">
+        </div>
+
+        <div class="indicators" id="indicators"></div>
+
+        <div class="controls">
+            <button class="btn btn-skip" id="skipBtn" onclick="endTour()">Skip</button>
+            <div>
+                <button class="btn" id="prevBtn" onclick="prevSlide()" style="margin-right: 8px;">Back</button>
+                <button class="btn" id="nextBtn" onclick="nextSlide()">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const slidesConfig = [
+            "img_present/WhatsApp Image 2026-06-02 at 7.00.32 PM.jpeg",
+            "img_present/WhatsApp Image 2026-06-02 at 7.00.41 PM.jpeg",
+            "img_present/WhatsApp Image 2026-06-02 at 7.00.45 PM.jpeg",
+            "img_present/WhatsApp Image 2026-06-02 at 7.00.46 PM.jpeg",
+            "img_present/WhatsApp Image 2026-06-02 at 7.00.46 PM (1).jpeg",
+            "img_present/WhatsApp Image 2026-06-02 at 7.00.47 PM (1).jpeg",
+            "img_present/WhatsApp Image 2026-06-02 at 7.00.47 PM.jpeg",
+            "img_present/WhatsApp Image 2026-06-02 at 7.00.47 PM (2).jpeg",
+            "img_present/WhatsApp Image 2026-06-02 at 7.00.48 PM (1).jpeg",
+            "img_present/WhatsApp Image 2026-06-02 at 7.00.48 PM (2).jpeg",
+            "img_present/WhatsApp Image 2026-06-02 at 7.00.48 PM.jpeg"
+        ];
+
+        let currentSlide = 0;
+        
+        const slideImage = document.getElementById('slideImage');
+        const indicatorsContainer = document.getElementById('indicators');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const introOverlay = document.getElementById('introOverlay');
+
+        function initTour() {
+            // Create indicators
+            slidesConfig.forEach((_, index) => {
+                const dot = document.createElement('div');
+                dot.className = 'dot' + (index === 0 ? ' active' : '');
+                indicatorsContainer.appendChild(dot);
+            });
+            
+            updateSlide();
+        }
+
+        function startTour() {
+            introOverlay.style.opacity = '0';
+            setTimeout(() => {
+                introOverlay.style.display = 'none';
+            }, 500);
+        }
+
+        function updateSlide() {
+            const imagePath = slidesConfig[currentSlide];
+            
+            // Crossfade image
+            slideImage.style.opacity = '0.5';
+            setTimeout(() => {
+                slideImage.src = imagePath;
+                slideImage.style.opacity = '1';
+            }, 200);
+
+            // Update Indicators
+            document.querySelectorAll('.dot').forEach((dot, index) => {
+                dot.className = 'dot' + (index === currentSlide ? ' active' : '');
+            });
+
+            // Update Buttons
+            prevBtn.disabled = currentSlide === 0;
+            if (currentSlide === slidesConfig.length - 1) {
+                nextBtn.innerText = "Finish";
+            } else {
+                nextBtn.innerText = "Next";
+            }
+        }
+
+        function nextSlide() {
+            if (currentSlide < slidesConfig.length - 1) {
+                currentSlide++;
+                updateSlide();
+            } else {
+                endTour();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlide();
+            }
+        }
+
+        function endTour() {
+            alert("Tour finished! You're ready to use the app.");
+        }
+
+        // Initialize
+        initTour();
+    </script>
+</body>
+</html>

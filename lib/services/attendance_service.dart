@@ -45,7 +45,7 @@ class AttendanceService {
   List<AttendanceAuditLog> get logs => _logs;
 
   /// Calculations based strictly on the formulas in Section 5 and 13 of spec
-  SubjectAttendanceStats calculateStats(Subject subject) {
+  SubjectAttendanceStats calculateStats(Subject subject, double targetStandard) {
     final subjectSessions = _sessions
         .where((s) => s.subjectId == subject.id)
         .toList();
@@ -65,13 +65,13 @@ class AttendanceService {
 
     final conducted = attended + absent;
     final double pct = conducted == 0 ? 100.0 : (attended / conducted) * 100.0;
-    final double targetRatio = subject.thresholdPercent / 100.0;
+    final double targetRatio = targetStandard / 100.0;
     final int safeMin = (targetRatio * conducted).ceil();
 
     int margin = 0;
     RiskState state = RiskState.safe;
 
-    if (pct >= subject.thresholdPercent) {
+    if (pct >= targetStandard) {
       // Classes we can safely miss: floor(A / targetRatio) - C
       margin = conducted == 0
           ? subject.plannedTotalClasses
@@ -167,7 +167,6 @@ class AttendanceService {
     required String color,
     required String icon,
     int plannedTotalClasses = 30,
-    double thresholdPercent = 75.0,
     String? teacherName,
     DateTime? semesterStart,
     DateTime? semesterEnd,
@@ -180,7 +179,6 @@ class AttendanceService {
       color: color,
       icon: icon,
       plannedTotalClasses: plannedTotalClasses,
-      thresholdPercent: thresholdPercent,
       teacherName: teacherName,
       semesterStart: semesterStart,
       semesterEnd: semesterEnd,

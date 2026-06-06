@@ -39,7 +39,7 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
+              Icon(
                 Icons.school_outlined,
                 size: 64.0,
                 color: AppTheme.textSecondary,
@@ -67,7 +67,7 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
     }
 
     final stats = appState.getStatsForSubject(subject);
-    final isSafe = stats.attendancePercentage >= subject.thresholdPercent;
+    final isSafe = stats.attendancePercentage >= appState.globalTargetStandard;
 
     // Filter sessions for currently selected subject & date
     final sessions = appState.sessions
@@ -107,7 +107,7 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
                   children: [
                     if (appState.selectedSubject != null) ...[
                       IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.arrow_back_ios_new_rounded,
                           color: AppTheme.textPrimary,
                           size: 18.0,
@@ -132,7 +132,7 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
                           ),
                           const SizedBox(height: 4.0),
                           Text(
-                            '${subject.code} • Target: ${subject.thresholdPercent.toStringAsFixed(0)}%',
+                            '${subject.code} • Target: ${appState.globalTargetStandard.toStringAsFixed(0)}%',
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(
                                   color: AppTheme.textSecondary,
@@ -207,7 +207,7 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Text(
                         'Attendance Progress',
                         style: TextStyle(
@@ -310,7 +310,7 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
       children: [
         Text(
           DateFormat('MMMM yyyy').format(_currentMonth),
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 16.0,
             color: AppTheme.textPrimary,
@@ -319,7 +319,7 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
         Row(
           children: [
             IconButton(
-              icon: const Icon(
+              icon: Icon(
                 Icons.chevron_left_rounded,
                 color: AppTheme.textSecondary,
               ),
@@ -331,7 +331,7 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
               }),
             ),
             IconButton(
-              icon: const Icon(
+              icon: Icon(
                 Icons.chevron_right_rounded,
                 color: AppTheme.textSecondary,
               ),
@@ -370,7 +370,7 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
                   child: Center(
                     child: Text(
                       d,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppTheme.textSecondary,
                         fontWeight: FontWeight.bold,
                         fontSize: 11.0,
@@ -427,9 +427,6 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
             } else if (attendanceState == 'absent') {
               tileBg = AppTheme.errorLight;
               textColor = AppTheme.error;
-            } else if (attendanceState == 'unknown') {
-              tileBg = AppTheme.primaryLight;
-              textColor = AppTheme.textSecondary;
             }
 
             if (isSelected) {
@@ -487,7 +484,7 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
         return AlertDialog(
           backgroundColor: AppTheme.cardBg,
           surfaceTintColor: AppTheme.transparent,
-          title: const Text(
+          title: Text(
             'Update Attendance',
             style: TextStyle(
               fontWeight: FontWeight.bold,
@@ -496,12 +493,12 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
           ),
           content: Text(
             'Would you like to mark this session as $oppositeStatus or unmark it completely?',
-            style: const TextStyle(color: AppTheme.textSecondary),
+            style: TextStyle(color: AppTheme.textSecondary),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text(
+              child: Text(
                 'Cancel',
                 style: TextStyle(color: AppTheme.textSecondary),
               ),
@@ -519,7 +516,7 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
                   Navigator.pop(context);
                 }
               },
-              child: const Text(
+              child: Text(
                 'Unmark',
                 style: TextStyle(color: AppTheme.warning),
               ),
@@ -568,7 +565,7 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
         children: [
           Text(
             DateFormat('EEEE, MMM d, yyyy').format(appState.selectedDate),
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16.0,
               color: AppTheme.textPrimary,
@@ -711,7 +708,7 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Class Photo Proofs',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
@@ -748,8 +745,8 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
                 subject,
                 activeSession,
               ),
-              icon: const Icon(Icons.add_a_photo_rounded, size: 18.0),
-              label: const Text('Add Session Proof Image'),
+              icon: Icon(Icons.add_a_photo_rounded, size: 18.0, color: AppTheme.primary),
+              label: Text('Add Session Proof Image', style: TextStyle(color: AppTheme.primary)),
               style: TextButton.styleFrom(
                 minimumSize: const Size(double.infinity, 44.0),
                 backgroundColor: AppTheme.primaryLight,
@@ -769,7 +766,7 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
         color: AppTheme.neutralBorder.withOpacity(0.2),
         borderRadius: BorderRadius.circular(14.0),
       ),
-      child: const Column(
+      child: Column(
         children: [
           Icon(
             Icons.photo_library_outlined,
@@ -833,7 +830,7 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
                               fit: BoxFit.cover,
                             );
                           }
-                          return const Icon(
+                          return Icon(
                             Icons.image,
                             color: AppTheme.textSecondary,
                           );
@@ -851,7 +848,7 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
                           DateFormat(
                             'MMM d, yyyy • h:mm a',
                           ).format(proof.captureTimestamp),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 12.0,
                             color: AppTheme.textPrimary,
@@ -871,7 +868,7 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
                   ),
                   // Delete proof trigger (triggers warning prompt)
                   IconButton(
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.delete_outline_rounded,
                       color: AppTheme.error,
                       size: 20.0,
@@ -945,7 +942,7 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.close_rounded,
                             color: AppTheme.white,
                           ),
@@ -969,7 +966,7 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {
-                              return const SizedBox(
+                              return SizedBox(
                                 height: 200.0,
                                 child: Center(
                                   child: CircularProgressIndicator(
@@ -979,7 +976,7 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
                               );
                             }
                             if (snapshot.hasError || snapshot.data == null) {
-                              return const SizedBox(
+                              return SizedBox(
                                 height: 200.0,
                                 child: Center(
                                   child: Column(
@@ -1053,7 +1050,7 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
           const SizedBox(width: 4.0),
           Text(
             text,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppTheme.primary,
               fontWeight: FontWeight.bold,
               fontSize: 11.0,
@@ -1218,7 +1215,7 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
+                  Text(
                     'Add Session Proof',
                     style: TextStyle(
                       color: AppTheme.textPrimary,
@@ -1228,11 +1225,11 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
                   ),
                   const SizedBox(height: 16.0),
                   ListTile(
-                    leading: const Icon(
+                    leading: Icon(
                       Icons.camera_alt_rounded,
                       color: AppTheme.primary,
                     ),
-                    title: const Text(
+                    title: Text(
                       'Take Photo',
                       style: TextStyle(color: AppTheme.textPrimary),
                     ),
@@ -1247,11 +1244,11 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
                     },
                   ),
                   ListTile(
-                    leading: const Icon(
+                    leading: Icon(
                       Icons.photo_library_rounded,
                       color: AppTheme.primary,
                     ),
-                    title: const Text(
+                    title: Text(
                       'Choose from Gallery',
                       style: TextStyle(color: AppTheme.textPrimary),
                     ),
@@ -1396,7 +1393,7 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
     );
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('Session proof attached and auto-marked Present!'),
           backgroundColor: AppTheme.success,
         ),
@@ -1418,13 +1415,17 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
         return AlertDialog(
           backgroundColor: AppTheme.cardBg,
           surfaceTintColor: AppTheme.transparent,
-          title: const Text(
+          title: Text(
             'Delete Proof Image?',
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: AppTheme.textPrimary,
+            ),
           ),
-          content: const Text(
+          content: Text(
             'Deleting this image will detach it from the class session. '
             'How would you like to update the attendance status for this class?',
+            style: TextStyle(color: AppTheme.textSecondary),
           ),
           actions: [
             TextButton(
@@ -1465,8 +1466,8 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
                 Navigator.pop(context);
               },
               child: Text(
-                'Mark Unknown',
-                style: TextStyle(color: AppTheme.textSecondary),
+                'Unmark',
+                style: TextStyle(color: AppTheme.warning),
               ),
             ),
           ],

@@ -63,7 +63,7 @@ class AnonymousInboxScreen extends StatelessWidget {
       decoration: AppTheme.cardDecoration(),
       child: Column(
         children: [
-          const Icon(
+          Icon(
             Icons.mark_as_unread_rounded,
             size: 64.0,
             color: AppTheme.textSecondary,
@@ -128,14 +128,14 @@ class AnonymousInboxScreen extends StatelessWidget {
           Expanded(
             flex: 3,
             child: Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: EdgeInsets.all(12.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     DateFormat('MMM d, yyyy • h:mm a').format(proof.captureTimestamp),
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11.0, color: AppTheme.textPrimary),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.0, color: AppTheme.textPrimary),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -151,9 +151,9 @@ class AnonymousInboxScreen extends StatelessWidget {
                           child: const Text('Assign', style: TextStyle(fontSize: 12.0)),
                         ),
                       ),
-                      const SizedBox(width: 8.0),
+                      SizedBox(width: 8.0),
                       IconButton(
-                        icon: const Icon(Icons.delete_outline_rounded, color: AppTheme.error, size: 20.0),
+                        icon: Icon(Icons.delete_outline_rounded, color: AppTheme.error, size: 20.0),
                         onPressed: () => appState.deleteProofCompletely(proof),
                         tooltip: 'Delete Proof Permanently',
                       ),
@@ -175,10 +175,11 @@ class AnonymousInboxScreen extends StatelessWidget {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('No Subjects Registered'),
-          content: const Text('You must register at least one subject in the dashboard before assigning proof images.'),
+          backgroundColor: AppTheme.cardBg,
+          title: Text('No Subjects Registered', style: TextStyle(color: AppTheme.textPrimary)),
+          content: Text('You must register at least one subject in the dashboard before assigning proof images.', style: TextStyle(color: AppTheme.textSecondary)),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text('OK', style: TextStyle(color: AppTheme.primary))),
           ],
         ),
       );
@@ -196,12 +197,12 @@ class AnonymousInboxScreen extends StatelessWidget {
             return AlertDialog(
               backgroundColor: AppTheme.cardBg,
               surfaceTintColor: AppTheme.transparent,
-              title: const Text('Assign Proof Image', style: TextStyle(fontWeight: FontWeight.bold)),
+              title: Text('Assign Proof Image', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Select target subject:', style: TextStyle(fontSize: 12.0, fontWeight: FontWeight.w600)),
+                  Text('Select target subject:', style: TextStyle(fontSize: 12.0, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
                   const SizedBox(height: 8.0),
                   DropdownButtonFormField<Subject>(
                     initialValue: selectedSubject,
@@ -214,7 +215,7 @@ class AnonymousInboxScreen extends StatelessWidget {
                     onChanged: (val) => setState(() => selectedSubject = val),
                   ),
                   const SizedBox(height: 16.0),
-                  const Text('Confirm session date:', style: TextStyle(fontSize: 12.0, fontWeight: FontWeight.w600)),
+                  Text('Confirm session date:', style: TextStyle(fontSize: 12.0, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
                   const SizedBox(height: 8.0),
                   InkWell(
                     onTap: () async {
@@ -237,7 +238,7 @@ class AnonymousInboxScreen extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(DateFormat('EEEE, MMM d, yyyy').format(selectedDate)),
+                          Text(DateFormat('EEEE, MMM d, yyyy').format(selectedDate), style: TextStyle(color: AppTheme.textPrimary)),
                           Icon(Icons.calendar_month_rounded, color: AppTheme.primary),
                         ],
                       ),
@@ -334,7 +335,7 @@ class AnonymousInboxScreen extends StatelessWidget {
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.close_rounded, color: Colors.white),
+                          icon: Icon(Icons.close_rounded, color: AppTheme.white),
                           onPressed: () => Navigator.pop(context),
                         ),
                       ],
@@ -352,7 +353,7 @@ class AnonymousInboxScreen extends StatelessWidget {
                           future: appState.loadProofImage(proof.filePathEncrypted),
                           builder: (context, snapshot) {
                             if (snapshot.connectionState == ConnectionState.waiting) {
-                              return const SizedBox(
+                              return SizedBox(
                                 height: 200.0,
                                 child: Center(
                                   child: CircularProgressIndicator(color: AppTheme.primary),
@@ -360,7 +361,7 @@ class AnonymousInboxScreen extends StatelessWidget {
                               );
                             }
                             if (snapshot.hasError || snapshot.data == null) {
-                              return const SizedBox(
+                              return SizedBox(
                                 height: 200.0,
                                 child: Center(
                                   child: Column(
@@ -368,7 +369,7 @@ class AnonymousInboxScreen extends StatelessWidget {
                                     children: [
                                       Icon(Icons.broken_image_rounded, color: AppTheme.error, size: 48.0),
                                       SizedBox(height: 8.0),
-                                      Text('Failed to load decrypted proof image'),
+                                      Text('Failed to load decrypted proof image', style: TextStyle(color: AppTheme.textSecondary)),
                                     ],
                                   ),
                                 ),
@@ -419,7 +420,7 @@ class AnonymousInboxScreen extends StatelessWidget {
           const SizedBox(width: 4.0),
           Text(
             text,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppTheme.primary,
               fontWeight: FontWeight.bold,
               fontSize: 11.0,

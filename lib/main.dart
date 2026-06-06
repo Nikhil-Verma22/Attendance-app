@@ -6,6 +6,7 @@ import 'ui/widgets/sidebar.dart';
 import 'ui/screens/dashboard.dart';
 import 'ui/screens/subject_detail.dart';
 import 'ui/screens/anonymous_inbox.dart';
+import 'ui/screens/onboarding.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,11 +23,45 @@ class AttendanceTrackerApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Attendance Tracker',
-      theme: AppTheme.lightTheme,
-      debugShowCheckedModeBanner: false,
-      home: const MainShell(),
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        Widget homeScreen;
+        if (appState.isLoading) {
+          homeScreen = Scaffold(
+            body: Container(
+              decoration: AppTheme.backgroundDecoration(),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: AppTheme.primary),
+                    const SizedBox(height: 16.0),
+                    Text(
+                      'Securing environment and synchronizing local records...',
+                      style: TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 13.0,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        } else if (!appState.hasSeenOnboarding) {
+          homeScreen = const OnboardingScreen();
+        } else {
+          homeScreen = const MainShell();
+        }
+
+        return MaterialApp(
+          title: 'Attendance Tracker',
+          theme: AppTheme.lightTheme,
+          debugShowCheckedModeBanner: false,
+          home: homeScreen,
+        );
+      },
     );
   }
 }
@@ -63,7 +98,7 @@ class _MainShellState extends State<MainShell> {
       return Scaffold(
         body: Container(
           decoration: AppTheme.backgroundDecoration(),
-          child: const Center(
+          child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

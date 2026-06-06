@@ -24,7 +24,7 @@ void main() {
       );
 
       // 1. Conducted is 0, percentage should default to 100%
-      var stats = service.calculateStats(subject);
+      var stats = service.calculateStats(subject, 75.0);
       expect(stats.attendancePercentage, equals(100.0));
       expect(stats.conductedCount, equals(0));
       expect(stats.attendedCount, equals(0));
@@ -33,7 +33,7 @@ void main() {
       final sess1 = await service.createOrGetSession(subjectId: subject.id, date: DateTime(2026, 5, 1));
       await service.updateSessionAttendance(sessionId: sess1.id, newStatus: 'present', reason: 'Attended');
 
-      stats = service.calculateStats(subject);
+      stats = service.calculateStats(subject, 75.0);
       expect(stats.attendancePercentage, equals(100.0));
       expect(stats.conductedCount, equals(1));
       expect(stats.attendedCount, equals(1));
@@ -42,7 +42,7 @@ void main() {
       final sess2 = await service.createOrGetSession(subjectId: subject.id, date: DateTime(2026, 5, 2));
       await service.updateSessionAttendance(sessionId: sess2.id, newStatus: 'absent', reason: 'Missed');
 
-      stats = service.calculateStats(subject);
+      stats = service.calculateStats(subject, 75.0);
       expect(stats.attendancePercentage, equals(50.0));
       expect(stats.conductedCount, equals(2));
       expect(stats.attendedCount, equals(1));
@@ -66,7 +66,7 @@ void main() {
       final s5 = await service.createOrGetSession(subjectId: subject.id, date: DateTime(2026, 5, 5));
       await service.updateSessionAttendance(sessionId: s5.id, newStatus: 'absent', reason: 'Absent');
 
-      final stats = service.calculateStats(subject);
+      final stats = service.calculateStats(subject, 75.0);
       // ceil(0.75 * 5) = 4
       expect(stats.safeMinimumRequired, equals(4));
       expect(stats.attendancePercentage, equals(80.0));
@@ -92,7 +92,7 @@ void main() {
         await service.updateSessionAttendance(sessionId: s.id, newStatus: 'absent', reason: 'Absent');
       }
 
-      final stats = service.calculateStats(subject);
+      final stats = service.calculateStats(subject, 75.0);
       expect(stats.attendancePercentage, lessThan(75.0));
       // Formula: 3 * C - 4 * A = 3 * 12 - 4 * 8 = 36 - 32 = 4 consecutive classes to recover
       expect(stats.remainingMargin, equals(4));
@@ -118,7 +118,7 @@ void main() {
         await service.updateSessionAttendance(sessionId: s.id, newStatus: 'absent', reason: 'Absent');
       }
 
-      final stats = service.calculateStats(subject);
+      final stats = service.calculateStats(subject, 75.0);
       expect(stats.attendancePercentage, greaterThanOrEqualTo(75.0));
       // Formula: floor(A / 0.75) - C = floor(10 / 0.75) - 12 = 13 - 12 = 1 class can be safely missed
       expect(stats.remainingMargin, equals(1));

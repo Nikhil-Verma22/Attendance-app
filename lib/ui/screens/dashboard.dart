@@ -9,7 +9,7 @@ import '../../providers/app_state.dart';
 import '../../models/models.dart';
 import '../theme.dart';
 import '../widgets/three_number_bar.dart';
-
+import 'onboarding.dart';
 class DashboardScreen extends StatefulWidget {
   final ValueChanged<int>? onNavigate;
   const DashboardScreen({super.key, this.onNavigate});
@@ -33,7 +33,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     int warningSubjects = 0;
     for (final s in appState.subjects) {
       if (appState.getStatsForSubject(s).attendancePercentage <
-          s.thresholdPercent) {
+          appState.globalTargetStandard) {
         warningSubjects++;
       }
     }
@@ -50,200 +50,222 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Scaffold(
       backgroundColor: AppTheme.transparent,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 1. Header (Matching the mock UI layout)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: InkWell(
-                    onTap: () => _showDeveloperConsole(context, appState),
-                    borderRadius: BorderRadius.circular(12.0),
-                    child: Padding(
-                      padding: const EdgeInsets.all(6.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Dashboard',
-                            style: Theme.of(context).textTheme.headlineLarge
-                                ?.copyWith(color: AppTheme.white),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8.0),
-                IconButton(
-                  icon: const Icon(
-                    Icons.add_rounded,
-                    color: AppTheme.primary,
-                    size: 28.0,
-                  ),
-                  onPressed: () => _showAddSubjectDialog(context, appState),
-                  tooltip: 'Add New Subject',
-                  constraints: const BoxConstraints(),
-                  padding: const EdgeInsets.all(8.0),
-                ),
-              ],
-            ),
-            const SizedBox(height: 32.0),
-
-            // 2. Summary Metric Cards — always 2x2 grid with dynamic aspect ratio
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisSpacing: 12.0,
-              mainAxisSpacing: 12.0,
-              mainAxisExtent: 95.0,
-              children: [
-                _buildMetricCard(
-                  context,
-                  'Total Subjects',
-                  '${appState.subjects.length}',
-                  'Active Term',
-                  Icons.school_rounded,
-                  AppTheme.primary,
-                ),
-                _buildMetricCard(
-                  context,
-                  'At Risk (<${appState.globalTargetStandard.toStringAsFixed(0)}%)',
-                  '$warningSubjects',
-                  _sortByWorst
-                      ? 'Sorted by Worst First'
-                      : (warningSubjects > 0
-                            ? 'Urgent attention'
-                            : 'All clear'),
-                  Icons.warning_amber_rounded,
-                  warningSubjects > 0 ? AppTheme.error : AppTheme.success,
-                  onTap: () {
-                    setState(() {
-                      _sortByWorst = !_sortByWorst;
-                    });
-                  },
-                  isActive: _sortByWorst,
-                ),
-                _buildMetricCard(
-                  context,
-                  'Anonymous Proofs',
-                  '$anonymousCount',
-                  'Awaiting assignment',
-                  Icons.mark_as_unread_rounded,
-                  AppTheme.warning,
-                  onTap: () {
-                    if (widget.onNavigate != null) {
-                      widget.onNavigate!(2);
-                    }
-                  },
-                ),
-                _buildMetricCard(
-                  context,
-                  'Target Standard',
-                  '${appState.globalTargetStandard.toStringAsFixed(0)}%',
-                  'Minimum safe limit',
-                  Icons.check_circle_outline_rounded,
-                  AppTheme.success,
-                  onLongPress: () =>
-                      _showTargetStandardDialog(context, appState),
-                ),
-              ],
-            ),
-            const SizedBox(height: 32.0),
-
-            // 3. Subjects list header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      Text(
-                        'Subjects',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.white,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (_sortByWorst) ...[
-                        const SizedBox(width: 8.0),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8.0,
-                            vertical: 4.0,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppTheme.error.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(8.0),
-                            border: Border.all(
-                              color: AppTheme.error.withOpacity(0.3),
-                              width: 1.0,
-                            ),
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
+                // 1. Header (Matching the mock UI layout)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: InkWell(
+                        onTap: () => _showDeveloperConsole(context, appState),
+                        borderRadius: BorderRadius.circular(12.0),
+                        child: Padding(
+                          padding: const EdgeInsets.all(6.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                Icons.sort_rounded,
-                                color: AppTheme.error,
-                                size: 10.0,
-                              ),
-                              SizedBox(width: 4.0),
                               Text(
-                                'Worst First',
-                                style: TextStyle(
-                                  color: AppTheme.error,
-                                  fontSize: 9.0,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 0.5,
-                                ),
+                                'Dashboard',
+                                style: Theme.of(context).textTheme.headlineLarge
+                                    ?.copyWith(color: AppTheme.white),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
                         ),
-                      ],
-                    ],
+                      ),
+                    ),
+                    const SizedBox(width: 8.0),
+                    IconButton(
+                      icon: Icon(
+                        Icons.help_outline_rounded,
+                        color: AppTheme.primary,
+                        size: 24.0,
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const OnboardingScreen(showCloseOnly: true),
+                          ),
+                        );
+                      },
+                      tooltip: 'View User Guide',
+                      constraints: const BoxConstraints(),
+                      padding: const EdgeInsets.all(8.0),
+                    ),
+                    const SizedBox(width: 8.0),
+                    IconButton(
+                      icon: Icon(
+                        Icons.add_rounded,
+                        color: AppTheme.primary,
+                        size: 28.0,
+                      ),
+                      onPressed: () => _showAddSubjectDialog(context, appState),
+                      tooltip: 'Add New Subject',
+                      constraints: const BoxConstraints(),
+                      padding: const EdgeInsets.all(8.0),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32.0),
+
+                // 2. Summary Metric Cards — always 2x2 grid with dynamic aspect ratio
+                GridView.count(
+                  crossAxisCount: 2,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisSpacing: 12.0,
+                  mainAxisSpacing: 12.0,
+                  mainAxisExtent: 95.0,
+                  children: [
+                    _buildMetricCard(
+                      context,
+                      'Total Subjects',
+                      '${appState.subjects.length}',
+                      'Active Term',
+                      Icons.school_rounded,
+                      AppTheme.primary,
+                    ),
+                    _buildMetricCard(
+                      context,
+                      'At Risk (<${appState.globalTargetStandard.toStringAsFixed(0)}%)',
+                      '$warningSubjects',
+                      _sortByWorst
+                          ? 'Sorted by Worst First'
+                          : (warningSubjects > 0
+                                ? 'Urgent attention'
+                                : 'All clear'),
+                      Icons.warning_amber_rounded,
+                      warningSubjects > 0 ? AppTheme.error : AppTheme.success,
+                      onTap: () {
+                        setState(() {
+                          _sortByWorst = !_sortByWorst;
+                        });
+                      },
+                      isActive: _sortByWorst,
+                    ),
+                    _buildMetricCard(
+                      context,
+                      'Anonymous Proofs',
+                      '$anonymousCount',
+                      'Awaiting assignment',
+                      Icons.mark_as_unread_rounded,
+                      AppTheme.warning,
+                      onTap: () {
+                        if (widget.onNavigate != null) {
+                          widget.onNavigate!(2);
+                        }
+                      },
+                    ),
+                    _buildMetricCard(
+                      context,
+                      'Target Standard',
+                      '${appState.globalTargetStandard.toStringAsFixed(0)}%',
+                      'Minimum safe limit',
+                      Icons.check_circle_outline_rounded,
+                      AppTheme.success,
+                      onLongPress: () =>
+                          _showTargetStandardDialog(context, appState),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32.0),
+
+                // 3. Subjects list header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Text(
+                            'Subjects',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.white,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (_sortByWorst) ...[
+                            const SizedBox(width: 8.0),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                                vertical: 4.0,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.error.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(8.0),
+                                border: Border.all(
+                                  color: AppTheme.error.withOpacity(0.3),
+                                  width: 1.0,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.sort_rounded,
+                                    color: AppTheme.error,
+                                    size: 10.0,
+                                  ),
+                                  SizedBox(width: 4.0),
+                                  Text(
+                                    'Worst First',
+                                    style: TextStyle(
+                                      color: AppTheme.error,
+                                      fontSize: 9.0,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8.0),
+                    Text(
+                      '${subjects.length} Total',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16.0),
+
+                // 4. Grid of Subject Cards with dynamic mainAxisExtent to avoid overflow
+                if (subjects.isEmpty)
+                  _buildEmptyState(context, appState)
+                else
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: 400.0,
+                      crossAxisSpacing: 16.0,
+                      mainAxisSpacing: 16.0,
+                      mainAxisExtent: screenWidth < 360
+                          ? 210.0
+                          : (screenWidth < 400 ? 200.0 : 190.0),
+                    ),
+                    itemCount: subjects.length,
+                    itemBuilder: (context, index) {
+                      final subject = subjects[index];
+                      return _buildSubjectCard(context, appState, subject);
+                    },
                   ),
-                ),
-                const SizedBox(width: 8.0),
-                Text(
-                  '${subjects.length} Total',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
               ],
             ),
-            const SizedBox(height: 16.0),
-
-            // 4. Grid of Subject Cards with dynamic mainAxisExtent to avoid overflow
-            if (subjects.isEmpty)
-              _buildEmptyState(context, appState)
-            else
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: 400.0,
-                  crossAxisSpacing: 16.0,
-                  mainAxisSpacing: 16.0,
-                  mainAxisExtent: screenWidth < 360
-                      ? 210.0
-                      : (screenWidth < 400 ? 200.0 : 190.0),
-                ),
-                itemCount: subjects.length,
-                itemBuilder: (context, index) {
-                  final subject = subjects[index];
-                  return _buildSubjectCard(context, appState, subject);
-                },
-              ),
-          ],
-        ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _triggerQuickCapture(context, appState),
@@ -364,7 +386,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     Subject subject,
   ) {
     final stats = appState.getStatsForSubject(subject);
-    final isSafe = stats.attendancePercentage >= subject.thresholdPercent;
+    final isSafe = stats.attendancePercentage >= appState.globalTargetStandard;
 
     final parsedColor = Color(
       int.parse(subject.color.replaceFirst('#', 'FF'), radix: 16),
@@ -378,82 +400,90 @@ class _DashboardScreenState extends State<DashboardScreen> {
       onLongPress: () => _showEditSubjectDialog(context, appState, subject),
       borderRadius: BorderRadius.circular(20.0),
       child: Container(
-        padding: const EdgeInsets.all(20.0),
+        clipBehavior: Clip.antiAlias,
         decoration: AppTheme.cardDecoration(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Stack(
           children: [
-            // Row metadata
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 12.0,
-                      height: 12.0,
-                      decoration: BoxDecoration(
-                        color: parsedColor,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 8.0),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          subject.name,
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                        Text(
-                          subject.code,
-                          style: Theme.of(context).textTheme.labelLarge,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                // Attendance percentage badge
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10.0,
-                    vertical: 6.0,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSafe ? AppTheme.successLight : AppTheme.errorLight,
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  child: Text(
-                    '${stats.attendancePercentage.toStringAsFixed(1)}%',
-                    style: TextStyle(
-                      color: isSafe ? AppTheme.success : AppTheme.error,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12.0,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const Spacer(),
-            // Summary indicators
-            Text(
-              '${stats.attendedCount}/${stats.conductedCount} Conducted Present',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimary,
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: Container(
+                width: 6.0,
+                color: parsedColor,
               ),
             ),
-            const SizedBox(height: 12.0),
-            // Custom Three-Number Bar Widget
-            ThreeNumberBar(
-              totalPlanned: subject.plannedTotalClasses,
-              conducted: stats.conductedCount,
-              attended: stats.attendedCount,
-              isSafe: isSafe,
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.end,
+                          children: [
+                            Text(
+                              subject.name,
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontSize: 18.0,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ),
+                            const SizedBox(width: 8.0),
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 2.0),
+                              child: Text(
+                                '(${subject.code})',
+                                style: Theme.of(context).textTheme.labelLarge,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12.0),
+                      // Attendance percentage badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10.0,
+                          vertical: 6.0,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSafe ? AppTheme.successLight : AppTheme.errorLight,
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                        child: Text(
+                          '${stats.attendancePercentage.toStringAsFixed(1)}%',
+                          style: TextStyle(
+                            color: isSafe ? AppTheme.success : AppTheme.error,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12.0,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16.0),
+                  Text(
+                    '${stats.attendedCount}/${stats.conductedCount} Conducted Present',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 12.0),
+                  // Custom Three-Number Bar Widget
+                  ThreeNumberBar(
+                    totalPlanned: subject.plannedTotalClasses,
+                    conducted: stats.conductedCount,
+                    attended: stats.attendedCount,
+                    isSafe: isSafe,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -468,7 +498,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       decoration: AppTheme.cardDecoration(),
       child: Column(
         children: [
-          const Icon(
+          Icon(
             Icons.school_outlined,
             size: 64.0,
             color: AppTheme.textSecondary,
@@ -522,7 +552,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         await appState.captureAndSaveProof(rawBytes: bytes, source: 'camera');
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text('Photo captured and added to Anonymous Inbox!'),
               backgroundColor: AppTheme.success,
             ),
@@ -590,7 +620,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('Photo proof added to Anonymous Inbox!'),
             backgroundColor: AppTheme.success,
           ),
@@ -652,7 +682,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             return AlertDialog(
               backgroundColor: AppTheme.cardBg,
               surfaceTintColor: AppTheme.transparent,
-              title: const Text(
+              title: Text(
                 'Register New Subject',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
@@ -759,7 +789,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text(
+                  child: Text(
                     'Cancel',
                     style: TextStyle(color: AppTheme.textSecondary),
                   ),
@@ -829,7 +859,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             return AlertDialog(
               backgroundColor: AppTheme.cardBg,
               surfaceTintColor: AppTheme.transparent,
-              title: const Text(
+              title: Text(
                 'Edit Subject Details',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
@@ -941,7 +971,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       builder: (childContext) => AlertDialog(
                         backgroundColor: AppTheme.cardBg,
                         surfaceTintColor: AppTheme.transparent,
-                        title: const Text(
+                        title: Text(
                           'Delete Subject?',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
@@ -950,12 +980,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         content: Text(
                           'Are you sure you want to delete "$name"? All its attendance history and proofs will be detached/deleted permanently.',
-                          style: const TextStyle(color: AppTheme.textSecondary),
+                          style: TextStyle(color: AppTheme.textSecondary),
                         ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(childContext),
-                            child: const Text(
+                            child: Text(
                               'Cancel',
                               style: TextStyle(color: AppTheme.textSecondary),
                             ),
@@ -969,7 +999,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               Navigator.pop(childContext); // Close confirmation
                               Navigator.pop(context); // Close edit dialog
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
+                                SnackBar(
                                   content: Text(
                                     'Subject successfully deleted.',
                                   ),
@@ -977,7 +1007,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ),
                               );
                             },
-                            child: const Text(
+                            child: Text(
                               'Delete',
                               style: TextStyle(color: AppTheme.white),
                             ),
@@ -986,14 +1016,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     );
                   },
-                  child: const Text(
+                  child: Text(
                     'Delete',
                     style: TextStyle(color: AppTheme.error),
                   ),
                 ),
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text(
+                  child: Text(
                     'Cancel',
                     style: TextStyle(color: AppTheme.textSecondary),
                   ),
@@ -1064,7 +1094,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               Container(
                                 width: 12,
                                 height: 12,
-                                decoration: const BoxDecoration(
+                                decoration: BoxDecoration(
                                   color: AppTheme.windowButtonRed,
                                   shape: BoxShape.circle,
                                 ),
@@ -1073,7 +1103,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               Container(
                                 width: 12,
                                 height: 12,
-                                decoration: const BoxDecoration(
+                                decoration: BoxDecoration(
                                   color: AppTheme.windowButtonYellow,
                                   shape: BoxShape.circle,
                                 ),
@@ -1082,19 +1112,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               Container(
                                 width: 12,
                                 height: 12,
-                                decoration: const BoxDecoration(
+                                decoration: BoxDecoration(
                                   color: AppTheme.windowButtonGreen,
                                   shape: BoxShape.circle,
                                 ),
                               ),
                               const SizedBox(width: 16),
-                              const Icon(
+                              Icon(
                                 Icons.terminal_rounded,
                                 color: AppTheme.grey,
                                 size: 16,
                               ),
                               const SizedBox(width: 8),
-                              const Text(
+                              Text(
                                 'Developer Console Logs',
                                 style: TextStyle(
                                   color: AppTheme.white,
@@ -1106,7 +1136,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ],
                           ),
                           IconButton(
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.close_rounded,
                               color: AppTheme.grey,
                               size: 20,
@@ -1138,7 +1168,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               borderRadius: BorderRadius.circular(6.0),
                               border: Border.all(color: AppTheme.greyDark),
                             ),
-                            child: const Row(
+                            child: Row(
                               children: [
                                 Icon(
                                   Icons.analytics_rounded,
@@ -1168,7 +1198,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     ClipboardData(text: allLogsText),
                                   );
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
+                                    SnackBar(
                                       content: Text(
                                         'All logs copied to clipboard!',
                                       ),
@@ -1183,9 +1213,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ),
                                 label: const Text('Copy Logs'),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(
-                                    0xFF0E639C,
-                                  ), // VS Code Blue
+                                  backgroundColor: AppTheme.snippetKeyword,
                                   foregroundColor: AppTheme.white,
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 12.0,
@@ -1204,7 +1232,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   appState.clearDevLogs();
                                   setState(() {});
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
+                                    SnackBar(
                                       content: Text('Console logs cleared.'),
                                       backgroundColor: AppTheme.textSecondary,
                                     ),
@@ -1241,7 +1269,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         padding: const EdgeInsets.all(16.0),
                         color: AppTheme.surfaceDark,
                         child: appState.devLogs.isEmpty
-                            ? const Center(
+                            ? Center(
                                 child: Text(
                                   '// No events logged yet. Perform some actions in the app!',
                                   style: TextStyle(
@@ -1254,10 +1282,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             : SingleChildScrollView(
                                 child: SelectableText(
                                   allLogsText,
-                                  style: const TextStyle(
-                                    color: Color(
-                                      0xFFD4D4D4,
-                                    ), // Soft light grey code color
+                                  style: TextStyle(
+                                    color: AppTheme.textSecondary,
                                     fontFamily: 'monospace',
                                     fontSize: 12.0,
                                     height: 1.5,
@@ -1286,7 +1312,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             return AlertDialog(
               backgroundColor: AppTheme.cardBg,
               surfaceTintColor: AppTheme.transparent,
-              title: const Text(
+              title: Text(
                 'Change Target Standard',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
@@ -1296,7 +1322,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
+                  Text(
                     'Adjust the default target attendance percentage. This will automatically update all existing subjects to use this threshold as their minimum safe limit.',
                     style: TextStyle(
                       color: AppTheme.textSecondary,
@@ -1306,7 +1332,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(height: 24.0),
                   Text(
                     '${localStandard.toStringAsFixed(0)}%',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppTheme.white,
                       fontSize: 48.0,
                       fontWeight: FontWeight.w900,
@@ -1362,7 +1388,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           '50%',
                           style: TextStyle(
                             color: AppTheme.textSecondary,
@@ -1381,13 +1407,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               Container(
                                 width: 8.0,
                                 height: 8.0,
-                                decoration: const BoxDecoration(
+                                decoration: BoxDecoration(
                                   color: AppTheme.success,
                                   shape: BoxShape.circle,
                                 ),
                               ),
                               const SizedBox(width: 5.0),
-                              const Text(
+                              Text(
                                 '75% (Default)',
                                 style: TextStyle(
                                   color: AppTheme.success,
@@ -1398,7 +1424,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ],
                           ),
                         ),
-                        const Text(
+                        Text(
                           '100%',
                           style: TextStyle(
                             color: AppTheme.textSecondary,
@@ -1413,7 +1439,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text(
+                  child: Text(
                     'Cancel',
                     style: TextStyle(color: AppTheme.textSecondary),
                   ),

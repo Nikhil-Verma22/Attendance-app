@@ -78,10 +78,19 @@ class Sidebar extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Icon(
-              Icons.stars_rounded,
-              color: AppTheme.white,
-              size: 26.0,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16.0),
+              child: Image.asset(
+                'assets/icon/icon_2.jpeg',
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Icon(
+                    Icons.stars_rounded,
+                    color: AppTheme.white,
+                    size: 26.0,
+                  );
+                },
+              ),
             ),
           ),
           const Spacer(),
@@ -101,7 +110,7 @@ class Sidebar extends StatelessWidget {
               shape: BoxShape.circle,
               border: Border.all(color: AppTheme.primary.withOpacity(0.2), width: 1.5),
             ),
-            child: const Center(
+            child: Center(
               child: Text(
                 'ST', // Student
                 style: TextStyle(

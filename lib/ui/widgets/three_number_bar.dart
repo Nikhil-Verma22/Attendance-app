@@ -95,7 +95,7 @@ class ThreeNumberBar extends StatelessWidget {
                       Container(
                         width: circleSize,
                         height: circleSize,
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           color: AppTheme.neutralBorder,
                           shape: BoxShape.circle,
                         ),
@@ -122,7 +122,7 @@ class ThreeNumberBar extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'Conducted: $conducted',
+                        'Cond: $conducted',
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
                               fontSize: legendFontSize,
                             ),
@@ -142,7 +142,7 @@ class ThreeNumberBar extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'Attended: $attended',
+                        'Att: $attended',
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: attendedColor,

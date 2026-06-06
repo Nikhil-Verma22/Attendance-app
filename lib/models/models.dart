@@ -6,7 +6,6 @@ class Subject {
   final String code;
   final String color;
   final String icon;
-  final double thresholdPercent;
   final int plannedTotalClasses;
   final bool activeStatus;
   final DateTime createdAt;
@@ -21,7 +20,6 @@ class Subject {
     required this.code,
     required this.color,
     required this.icon,
-    this.thresholdPercent = 75.0,
     required this.plannedTotalClasses,
     this.activeStatus = true,
     required this.createdAt,
@@ -36,7 +34,6 @@ class Subject {
     String? code,
     String? color,
     String? icon,
-    double? thresholdPercent,
     int? plannedTotalClasses,
     bool? activeStatus,
     DateTime? updatedAt,
@@ -50,7 +47,6 @@ class Subject {
       code: code ?? this.code,
       color: color ?? this.color,
       icon: icon ?? this.icon,
-      thresholdPercent: thresholdPercent ?? this.thresholdPercent,
       plannedTotalClasses: plannedTotalClasses ?? this.plannedTotalClasses,
       activeStatus: activeStatus ?? this.activeStatus,
       createdAt: createdAt,
@@ -68,7 +64,6 @@ class Subject {
       'code': code,
       'color': color,
       'icon': icon,
-      'thresholdPercent': thresholdPercent,
       'plannedTotalClasses': plannedTotalClasses,
       'activeStatus': activeStatus,
       'createdAt': createdAt.toIso8601String(),
@@ -86,7 +81,6 @@ class Subject {
       code: map['code'] as String,
       color: map['color'] as String,
       icon: map['icon'] as String,
-      thresholdPercent: (map['thresholdPercent'] as num?)?.toDouble() ?? 75.0,
       plannedTotalClasses: map['plannedTotalClasses'] as int,
       activeStatus: map['activeStatus'] as bool? ?? true,
       createdAt: DateTime.parse(map['createdAt'] as String),

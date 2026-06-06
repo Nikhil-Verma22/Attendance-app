@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
 import '../services/attendance_service.dart';
 import '../services/storage_service.dart';
+import '../ui/theme.dart';
 
 class AppState extends ChangeNotifier {
   final AttendanceService _attendanceService = AttendanceService();
@@ -14,6 +15,9 @@ class AppState extends ChangeNotifier {
 
   bool _isLoading = true;
   bool get isLoading => _isLoading;
+
+  bool _hasSeenOnboarding = false;
+  bool get hasSeenOnboarding => _hasSeenOnboarding;
 
   Subject? _selectedSubject;
   Subject? _lastSelectedSubject;
@@ -57,10 +61,12 @@ class AppState extends ChangeNotifier {
     notifyListeners();
 
     await _attendanceService.loadData();
+    await AppTheme.loadTheme();
 
     // Default to the last open subject or the first available
     final prefs = await SharedPreferences.getInstance();
     _globalTargetStandard = prefs.getDouble('global_target_standard') ?? 75.0;
+    _hasSeenOnboarding = prefs.getBool('has_seen_onboarding') ?? false;
     final lastId = prefs.getString('last_selected_subject_id');
     if (lastId != null) {
       final found = _attendanceService.subjects.firstWhere(
@@ -78,6 +84,14 @@ class AppState extends ChangeNotifier {
     logDevEvent(
       'System Initialized: loaded ${_attendanceService.subjects.length} subjects, ${_attendanceService.sessions.length} sessions, and ${_attendanceService.proofs.length} proof images.',
     );
+    notifyListeners();
+  }
+
+  Future<void> completeOnboarding() async {
+    _hasSeenOnboarding = true;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('has_seen_onboarding', true);
+    logDevEvent('Onboarding slideshow completed.');
     notifyListeners();
   }
 
@@ -106,7 +120,7 @@ class AppState extends ChangeNotifier {
   // --- BUSINESS STATS PASSTHROUGH ---
 
   SubjectAttendanceStats getStatsForSubject(Subject subject) {
-    return _attendanceService.calculateStats(subject);
+    return _attendanceService.calculateStats(subject, _globalTargetStandard);
   }
 
   List<ClassSession> getSessionsForSelectedSubject() {
@@ -129,13 +143,6 @@ class AppState extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('global_target_standard', newThreshold);
 
-    // Update all existing subjects to use this new threshold
-    for (int i = 0; i < _attendanceService.subjects.length; i++) {
-      final subject = _attendanceService.subjects[i];
-      final updated = subject.copyWith(thresholdPercent: newThreshold);
-      await _attendanceService.updateSubject(updated);
-    }
-
     logDevEvent(
       'Global Target Standard Updated to ${newThreshold.toStringAsFixed(0)}%',
     );
@@ -148,19 +155,16 @@ class AppState extends ChangeNotifier {
     required String color,
     required String icon,
     int plannedTotalClasses = 30,
-    double? thresholdPercent,
     String? teacherName,
     DateTime? semesterStart,
     DateTime? semesterEnd,
   }) async {
-    final threshold = thresholdPercent ?? _globalTargetStandard;
     final sub = await _attendanceService.createSubject(
       name: name,
       code: code,
       color: color,
       icon: icon,
       plannedTotalClasses: plannedTotalClasses,
-      thresholdPercent: threshold,
       teacherName: teacherName,
       semesterStart: semesterStart,
       semesterEnd: semesterEnd,
@@ -168,7 +172,7 @@ class AppState extends ChangeNotifier {
 
     _selectedSubject ??= sub;
     logDevEvent(
-      'Subject Created: "$name" ($code), Color: $color, Total Planned: $plannedTotalClasses, Threshold: $thresholdPercent%',
+      'Subject Created: "$name" ($code), Color: $color, Total Planned: $plannedTotalClasses',
     );
     notifyListeners();
   }
@@ -186,7 +190,7 @@ class AppState extends ChangeNotifier {
       _lastSelectedSubject = subjectInService;
     }
     logDevEvent(
-      'Subject Updated: "${updated.name}" (${updated.code}), threshold: ${updated.thresholdPercent}%',
+      'Subject Updated: "${updated.name}" (${updated.code})',
     );
     notifyListeners();
   }
@@ -338,5 +342,9 @@ class AppState extends ChangeNotifier {
   /// Quick load of thumbnails in UI views
   Future<Uint8List?> loadProofThumbnail(String thumbPath) async {
     return await _storageService.loadThumbnail(thumbPath);
+  }
+
+  void refreshTheme() {
+    notifyListeners();
   }
 }
