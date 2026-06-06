@@ -8,13 +8,30 @@ Crafted with a sleek, minimalist Charcoal Glassmorphism UI, this app ensures you
 
 Here is a visual walkthrough of the key screens and features of the Attendance Tracker app as seen during the initial download guide:
 
-| Screen | Preview | Description |
-|---|---|---|
-| **1. Explore Dashboard** | <img src="assets/preview/screen_1.png" width="180" alt="Explore Dashboard" /> | The central hub showing registered subjects, aggregate stats, risk status, anonymous proof count, and standard target limits. |
-| **2. Safety Standard** | <img src="assets/preview/screen_2.png" width="180" alt="Safety Standard" /> | Keep your attendance above the safe limits (e.g. 75%). This screen details warning levels and minimum safe class counts. |
-| **3. Mark Your Attendance** | <img src="assets/preview/screen_3.png" width="180" alt="Mark Your Attendance" /> | Select dates on the calendar view to quickly log session details, attendance status (present/absent), and custom remarks. |
-| **4. Add Proofs for Convenience** | <img src="assets/preview/screen_4.png" width="180" alt="Add Proofs" /> | Keep secure photographic proof of attendance by snapping pictures directly or choosing files from your gallery. |
-| **5. Assign Your Proof Accumulated in Hurry** | <img src="assets/preview/screen_5.png" width="180" alt="Assign Proofs" /> | Capture proofs in a hurry and categorize them later. Unassigned proof images are saved in the Anonymous Inbox for classification. |
+### 1. Explore Dashboard
+<img src="assets/preview/screen_1.png" width="288" alt="Explore Dashboard" />
+
+The central hub showing registered subjects, aggregate stats, risk status, anonymous proof count, and standard target limits.
+
+### 2. Safety Standard
+<img src="assets/preview/screen_2.png" width="288" alt="Safety Standard" />
+
+Keep your attendance above the safe limits (e.g. 75%). This screen details warning levels and minimum safe class counts.
+
+### 3. Mark Your Attendance
+<img src="assets/preview/screen_3.png" width="288" alt="Mark Your Attendance" />
+
+Select dates on the calendar view to quickly log session details, attendance status (present/absent), and custom remarks.
+
+### 4. Add Proofs for Convenience
+<img src="assets/preview/screen_4.png" width="288" alt="Add Proofs" />
+
+Keep secure photographic proof of attendance by snapping pictures directly or choosing files from your gallery.
+
+### 5. Assign Your Proof Accumulated in Hurry
+<img src="assets/preview/screen_5.png" width="288" alt="Assign Proofs" />
+
+Capture proofs in a hurry and categorize them later. Unassigned proof images are saved in the Anonymous Inbox for classification.
 
 ## ✨ Key Features
 
