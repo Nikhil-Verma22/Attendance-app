@@ -334,6 +334,26 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> updateSessionNotes({
+    required String subjectId,
+    required DateTime date,
+    required String? notes,
+  }) async {
+    final session = await _attendanceService.createOrGetSession(
+      subjectId: subjectId,
+      date: date,
+    );
+    await _attendanceService.updateSessionNotes(
+      sessionId: session.id,
+      notes: notes,
+    );
+    logDevEvent(
+      'Session Notes Updated: Subject ID $subjectId, Date ${date.toIso8601String().substring(0, 10)}',
+    );
+    notifyListeners();
+  }
+
+
   /// Load decompressed image data dynamically in UI components
   Future<Uint8List?> loadProofImage(String filePath) async {
     return await _storageService.loadProof(filePath);

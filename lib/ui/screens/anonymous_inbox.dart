@@ -154,7 +154,7 @@ class AnonymousInboxScreen extends StatelessWidget {
                       SizedBox(width: 8.0),
                       IconButton(
                         icon: Icon(Icons.delete_outline_rounded, color: AppTheme.error, size: 20.0),
-                        onPressed: () => appState.deleteProofCompletely(proof),
+                        onPressed: () => _confirmProofDeletion(context, appState, proof),
                         tooltip: 'Delete Proof Permanently',
                       ),
                     ],
@@ -205,11 +205,16 @@ class AnonymousInboxScreen extends StatelessWidget {
                   Text('Select target subject:', style: TextStyle(fontSize: 12.0, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
                   const SizedBox(height: 8.0),
                   DropdownButtonFormField<Subject>(
+                    dropdownColor: AppTheme.cardBg,
+                    style: TextStyle(color: AppTheme.textSecondary),
                     initialValue: selectedSubject,
                     items: appState.subjects.map((sub) {
                       return DropdownMenuItem<Subject>(
                         value: sub,
-                        child: Text('${sub.name} (${sub.code})'),
+                        child: Text(
+                          '${sub.name} (${sub.code})',
+                          style: TextStyle(color: AppTheme.textSecondary),
+                        ),
                       );
                     }).toList(),
                     onChanged: (val) => setState(() => selectedSubject = val),
@@ -428,6 +433,61 @@ class AnonymousInboxScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _confirmProofDeletion(
+    BuildContext context,
+    AppState appState,
+    ProofImage proof,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppTheme.cardBg,
+          surfaceTintColor: AppTheme.transparent,
+          title: Text(
+            'Delete Proof Permanently?',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+          content: Text(
+            'Are you sure you want to permanently delete this proof image? This action cannot be undone.',
+            style: TextStyle(color: AppTheme.textSecondary),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: AppTheme.textSecondary),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await appState.deleteProofCompletely(proof);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('Proof image deleted permanently!'),
+                      backgroundColor: AppTheme.success,
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.error,
+                foregroundColor: AppTheme.white,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

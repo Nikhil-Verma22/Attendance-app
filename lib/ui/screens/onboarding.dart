@@ -21,27 +21,27 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<OnboardingSlide> _slides = [
     OnboardingSlide(
-      imagePath: 'assets/preview/screen_1.png',
+      imagePath: 'assets/preview/screen_1.webp',
       title: 'explore dashboard',
       description: 'Get a comprehensive view of all registered subjects, warning stats, target standards, and quick access actions in a single interactive dashboard.',
     ),
     OnboardingSlide(
-      imagePath: 'assets/preview/screen_2.png',
+      imagePath: 'assets/preview/screen_2.webp',
       title: 'safety standard',
       description: 'Set and track your safe attendance thresholds. Identify at-risk subjects immediately and keep your attendance above the required limits.',
     ),
     OnboardingSlide(
-      imagePath: 'assets/preview/screen_3.png',
+      imagePath: 'assets/preview/screen_3.webp',
       title: 'mark your attendance',
       description: 'Easily log conducted sessions, specify attendance status (present/absent), and record remarks for full historical clarity.',
     ),
     OnboardingSlide(
-      imagePath: 'assets/preview/screen_4.png',
+      imagePath: 'assets/preview/screen_4.webp',
       title: 'add proofs for convenience',
       description: 'Take camera snapshots or upload images from your gallery to use as secure, encrypted proof of class attendance.',
     ),
     OnboardingSlide(
-      imagePath: 'assets/preview/screen_5.png',
+      imagePath: 'assets/preview/screen_5.webp',
       title: 'assign your proof accumulated in hurry',
       description: 'Quickly capture proof pictures on the fly and organize them later by attaching them to specific class sessions from your Anonymous Inbox.',
     ),

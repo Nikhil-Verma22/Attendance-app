@@ -27,7 +27,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final anonymousCount = appState.anonymousProofs.length;
 
     final double screenWidth = MediaQuery.of(context).size.width;
-    final bool isCompact = screenWidth < 380;
 
     // Derived dashboard calculations
     int warningSubjects = 0;
@@ -639,175 +638,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _showAddSubjectDialog(BuildContext context, AppState appState) {
-    final formKey = GlobalKey<FormState>();
-    final FocusNode nameFocus = FocusNode();
-    final FocusNode codeFocus = FocusNode();
-    final FocusNode plannedFocus = FocusNode();
-    String name = '';
-    String code = '';
-    int planned = 30;
-    String selectedHexColor = '#3B3EAC';
-    String selectedIcon = 'book';
-
-    final List<String> availableColors = [
-      '#3B3EAC', // Deep Indigo
-      '#F44336', // Bright Red
-      '#4CAF50', // Emerald Green
-      '#FF9800', // Orange
-      '#9C27B0', // Purple
-      '#00BCD4', // Cyan
-    ];
-
-    Future<void> submit() async {
-      if (formKey.currentState!.validate()) {
-        formKey.currentState!.save();
-        await appState.addSubject(
-          name: name,
-          code: code,
-          color: selectedHexColor,
-          icon: selectedIcon,
-          plannedTotalClasses: planned,
-        );
-        if (context.mounted) {
-          Navigator.pop(context);
-        }
-      }
-    }
-
     showDialog(
       context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              backgroundColor: AppTheme.cardBg,
-              surfaceTintColor: AppTheme.transparent,
-              title: Text(
-                'Register New Subject',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimary,
-                ),
-              ),
-              content: Form(
-                key: formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextFormField(
-                        focusNode: nameFocus,
-                        decoration: const InputDecoration(
-                          labelText: 'Subject Name',
-                          hintText: 'e.g. Mathematics',
-                        ),
-                        textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) =>
-                            FocusScope.of(context).requestFocus(codeFocus),
-                        validator: (v) =>
-                            (v == null || v.isEmpty) ? 'Name required' : null,
-                        onSaved: (v) => name = v!,
-                      ),
-                      const SizedBox(height: 12.0),
-                      TextFormField(
-                        focusNode: codeFocus,
-                        decoration: const InputDecoration(
-                          labelText: 'Subject Code',
-                          hintText: 'e.g. MATH-101',
-                        ),
-                        textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) =>
-                            FocusScope.of(context).requestFocus(plannedFocus),
-                        validator: (v) =>
-                            (v == null || v.isEmpty) ? 'Code required' : null,
-                        onSaved: (v) => code = v!,
-                      ),
-                      const SizedBox(height: 12.0),
-                      TextFormField(
-                        focusNode: plannedFocus,
-                        decoration: const InputDecoration(
-                          labelText: 'Planned Classes (Term)',
-                        ),
-                        keyboardType: TextInputType.number,
-                        initialValue: '30',
-                        textInputAction: TextInputAction.done,
-                        onFieldSubmitted: (_) => submit(),
-                        validator: (v) => int.tryParse(v ?? '') == null
-                            ? 'Enter valid number'
-                            : null,
-                        onSaved: (v) => planned = int.parse(v!),
-                      ),
-                      const SizedBox(height: 16.0),
-                      // Colors grid
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Subject Color',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
-                            ),
-                          ),
-                          const SizedBox(height: 8.0),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: availableColors.map((hex) {
-                              final isSel = selectedHexColor == hex;
-                              final col = Color(
-                                int.parse(
-                                  hex.replaceFirst('#', 'FF'),
-                                  radix: 16,
-                                ),
-                              );
-                              return GestureDetector(
-                                onTap: () =>
-                                    setState(() => selectedHexColor = hex),
-                                child: Container(
-                                  width: 32.0,
-                                  height: 32.0,
-                                  decoration: BoxDecoration(
-                                    color: col,
-                                    shape: BoxShape.circle,
-                                    border: isSel
-                                        ? Border.all(
-                                            color: AppTheme.textPrimary,
-                                            width: 2.0,
-                                          )
-                                        : null,
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(
-                    'Cancel',
-                    style: TextStyle(color: AppTheme.textSecondary),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: submit,
-                  child: const Text('Register'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    ).then((_) {
-      nameFocus.dispose();
-      codeFocus.dispose();
-      plannedFocus.dispose();
-    });
+      builder: (context) => const SubjectFormDialog(),
+    );
   }
 
   void _showEditSubjectDialog(
@@ -815,230 +649,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     AppState appState,
     Subject subject,
   ) {
-    final formKey = GlobalKey<FormState>();
-    final FocusNode nameFocus = FocusNode();
-    final FocusNode codeFocus = FocusNode();
-    final FocusNode plannedFocus = FocusNode();
-    String name = subject.name;
-    String code = subject.code;
-    int planned = subject.plannedTotalClasses;
-    String selectedHexColor = subject.color;
-    String selectedIcon = subject.icon;
-
-    final List<String> availableColors = [
-      '#3B3EAC', // Deep Indigo
-      '#F44336', // Bright Red
-      '#4CAF50', // Emerald Green
-      '#FF9800', // Orange
-      '#9C27B0', // Purple
-      '#00BCD4', // Cyan
-    ];
-
-    Future<void> submit() async {
-      if (formKey.currentState!.validate()) {
-        formKey.currentState!.save();
-        final updated = subject.copyWith(
-          name: name,
-          code: code,
-          color: selectedHexColor,
-          icon: selectedIcon,
-          plannedTotalClasses: planned,
-        );
-        await appState.updateSubject(updated);
-        if (context.mounted) {
-          Navigator.pop(context);
-        }
-      }
-    }
-
     showDialog(
       context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              backgroundColor: AppTheme.cardBg,
-              surfaceTintColor: AppTheme.transparent,
-              title: Text(
-                'Edit Subject Details',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimary,
-                ),
-              ),
-              content: Form(
-                key: formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextFormField(
-                        focusNode: nameFocus,
-                        initialValue: name,
-                        decoration: const InputDecoration(
-                          labelText: 'Subject Name',
-                        ),
-                        textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) =>
-                            FocusScope.of(context).requestFocus(codeFocus),
-                        validator: (v) =>
-                            (v == null || v.isEmpty) ? 'Name required' : null,
-                        onSaved: (v) => name = v!,
-                      ),
-                      const SizedBox(height: 12.0),
-                      TextFormField(
-                        focusNode: codeFocus,
-                        initialValue: code,
-                        decoration: const InputDecoration(
-                          labelText: 'Subject Code',
-                        ),
-                        textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) =>
-                            FocusScope.of(context).requestFocus(plannedFocus),
-                        validator: (v) =>
-                            (v == null || v.isEmpty) ? 'Code required' : null,
-                        onSaved: (v) => code = v!,
-                      ),
-                      const SizedBox(height: 12.0),
-                      TextFormField(
-                        focusNode: plannedFocus,
-                        initialValue: planned.toString(),
-                        decoration: const InputDecoration(
-                          labelText: 'Planned Classes (Term)',
-                        ),
-                        keyboardType: TextInputType.number,
-                        textInputAction: TextInputAction.done,
-                        onFieldSubmitted: (_) => submit(),
-                        validator: (v) => int.tryParse(v ?? '') == null
-                            ? 'Enter valid number'
-                            : null,
-                        onSaved: (v) => planned = int.parse(v!),
-                      ),
-                      const SizedBox(height: 16.0),
-                      // Colors grid
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Subject Color',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
-                            ),
-                          ),
-                          const SizedBox(height: 8.0),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: availableColors.map((hex) {
-                              final isSel = selectedHexColor == hex;
-                              final col = Color(
-                                int.parse(
-                                  hex.replaceFirst('#', 'FF'),
-                                  radix: 16,
-                                ),
-                              );
-                              return GestureDetector(
-                                onTap: () =>
-                                    setState(() => selectedHexColor = hex),
-                                child: Container(
-                                  width: 32.0,
-                                  height: 32.0,
-                                  decoration: BoxDecoration(
-                                    color: col,
-                                    shape: BoxShape.circle,
-                                    border: isSel
-                                        ? Border.all(
-                                            color: AppTheme.textPrimary,
-                                            width: 2.0,
-                                          )
-                                        : null,
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (childContext) => AlertDialog(
-                        backgroundColor: AppTheme.cardBg,
-                        surfaceTintColor: AppTheme.transparent,
-                        title: Text(
-                          'Delete Subject?',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.textPrimary,
-                          ),
-                        ),
-                        content: Text(
-                          'Are you sure you want to delete "$name"? All its attendance history and proofs will be detached/deleted permanently.',
-                          style: TextStyle(color: AppTheme.textSecondary),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(childContext),
-                            child: Text(
-                              'Cancel',
-                              style: TextStyle(color: AppTheme.textSecondary),
-                            ),
-                          ),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.error,
-                            ),
-                            onPressed: () async {
-                              await appState.deleteSubject(subject.id);
-                              Navigator.pop(childContext); // Close confirmation
-                              Navigator.pop(context); // Close edit dialog
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Subject successfully deleted.',
-                                  ),
-                                  backgroundColor: AppTheme.success,
-                                ),
-                              );
-                            },
-                            child: Text(
-                              'Delete',
-                              style: TextStyle(color: AppTheme.white),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                  child: Text(
-                    'Delete',
-                    style: TextStyle(color: AppTheme.error),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(
-                    'Cancel',
-                    style: TextStyle(color: AppTheme.textSecondary),
-                  ),
-                ),
-                ElevatedButton(onPressed: submit, child: const Text('Save')),
-              ],
-            );
-          },
-        );
-      },
-    ).then((_) {
-      nameFocus.dispose();
-      codeFocus.dispose();
-      plannedFocus.dispose();
-    });
+      builder: (context) => SubjectFormDialog(subject: subject),
+    );
   }
 
   void _showDeveloperConsole(BuildContext context, AppState appState) {
@@ -1488,5 +1102,286 @@ class _CustomRightFabLocation extends FloatingActionButtonLocation {
         scaffoldGeometry.floatingActionButtonSize.height -
         10.0;
     return Offset(x, y);
+  }
+}
+
+class SubjectFormDialog extends StatefulWidget {
+  final Subject? subject;
+  const SubjectFormDialog({super.key, this.subject});
+
+  @override
+  State<SubjectFormDialog> createState() => _SubjectFormDialogState();
+}
+
+class _SubjectFormDialogState extends State<SubjectFormDialog> {
+  final _formKey = GlobalKey<FormState>();
+
+  late TextEditingController _nameController;
+  late TextEditingController _codeController;
+  late TextEditingController _plannedController;
+
+  late FocusNode _nameFocus;
+  late FocusNode _codeFocus;
+  late FocusNode _plannedFocus;
+
+  late String _selectedHexColor;
+  late String _selectedIcon;
+
+  final List<String> _availableColors = [
+    '#3B3EAC', // Deep Indigo
+    '#F44336', // Bright Red
+    '#4CAF50', // Emerald Green
+    '#FF9800', // Orange
+    '#9C27B0', // Purple
+    '#00BCD4', // Cyan
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.subject?.name ?? '');
+    _codeController = TextEditingController(text: widget.subject?.code ?? '');
+    _plannedController = TextEditingController(
+      text: (widget.subject?.plannedTotalClasses ?? 30).toString(),
+    );
+    _nameFocus = FocusNode();
+    _codeFocus = FocusNode();
+    _plannedFocus = FocusNode();
+    _selectedHexColor = widget.subject?.color ?? '#3B3EAC';
+    _selectedIcon = widget.subject?.icon ?? 'book';
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _codeController.dispose();
+    _plannedController.dispose();
+    _nameFocus.dispose();
+    _codeFocus.dispose();
+    _plannedFocus.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit(AppState appState) async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      final name = _nameController.text.trim();
+      final code = _codeController.text.trim();
+      final planned = int.parse(_plannedController.text.trim());
+
+      if (widget.subject == null) {
+        // Add Mode
+        await appState.addSubject(
+          name: name,
+          code: code,
+          color: _selectedHexColor,
+          icon: _selectedIcon,
+          plannedTotalClasses: planned,
+        );
+      } else {
+        // Edit Mode
+        final updated = widget.subject!.copyWith(
+          name: name,
+          code: code,
+          color: _selectedHexColor,
+          icon: _selectedIcon,
+          plannedTotalClasses: planned,
+        );
+        await appState.updateSubject(updated);
+      }
+
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    }
+  }
+
+  void _showDeleteConfirmation(BuildContext context, AppState appState) {
+    showDialog(
+      context: context,
+      builder: (childContext) => AlertDialog(
+        backgroundColor: AppTheme.cardBg,
+        surfaceTintColor: AppTheme.transparent,
+        title: Text(
+          'Delete Subject?',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: AppTheme.textPrimary,
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to delete "${widget.subject!.name}"? All its attendance history and proofs will be detached/deleted permanently.',
+          style: TextStyle(color: AppTheme.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(childContext),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: AppTheme.textSecondary),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.error,
+            ),
+            onPressed: () async {
+              await appState.deleteSubject(widget.subject!.id);
+              if (childContext.mounted) {
+                Navigator.pop(childContext); // Close confirmation dialog
+              }
+              if (context.mounted) {
+                Navigator.pop(context); // Close edit dialog
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('Subject successfully deleted.'),
+                    backgroundColor: AppTheme.success,
+                  ),
+                );
+              }
+            },
+            child: Text(
+              'Delete',
+              style: TextStyle(color: AppTheme.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final appState = Provider.of<AppState>(context, listen: false);
+    final isEdit = widget.subject != null;
+
+    return AlertDialog(
+      backgroundColor: AppTheme.cardBg,
+      surfaceTintColor: AppTheme.transparent,
+      title: Text(
+        isEdit ? 'Edit Subject' : 'Register New Subject',
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: AppTheme.textPrimary,
+        ),
+      ),
+      content: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _nameController,
+                focusNode: _nameFocus,
+                decoration: const InputDecoration(
+                  labelText: 'Subject Name',
+                  hintText: 'e.g. Mathematics',
+                ),
+                textInputAction: TextInputAction.next,
+                onFieldSubmitted: (_) =>
+                    FocusScope.of(context).requestFocus(_codeFocus),
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Name required' : null,
+              ),
+              const SizedBox(height: 12.0),
+              TextFormField(
+                controller: _codeController,
+                focusNode: _codeFocus,
+                decoration: const InputDecoration(
+                  labelText: 'Subject Code',
+                  hintText: 'e.g. MATH-101',
+                ),
+                textInputAction: TextInputAction.next,
+                onFieldSubmitted: (_) =>
+                    FocusScope.of(context).requestFocus(_plannedFocus),
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Code required' : null,
+              ),
+              const SizedBox(height: 12.0),
+              TextFormField(
+                controller: _plannedController,
+                focusNode: _plannedFocus,
+                decoration: const InputDecoration(
+                  labelText: 'Planned Classes (Term)',
+                ),
+                keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => _submit(appState),
+                validator: (v) => int.tryParse(v ?? '') == null
+                    ? 'Enter valid number'
+                    : null,
+              ),
+              const SizedBox(height: 16.0),
+              // Colors grid
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Subject Color',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 8.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: _availableColors.map((hex) {
+                      final isSel = _selectedHexColor == hex;
+                      final col = Color(
+                        int.parse(
+                          hex.replaceFirst('#', 'FF'),
+                          radix: 16,
+                        ),
+                      );
+                      return GestureDetector(
+                        onTap: () => setState(() => _selectedHexColor = hex),
+                        child: Container(
+                          width: 32.0,
+                          height: 32.0,
+                          decoration: BoxDecoration(
+                            color: col,
+                            shape: BoxShape.circle,
+                            border: isSel
+                                ? Border.all(
+                                    color: AppTheme.textPrimary,
+                                    width: 2.0,
+                                  )
+                                : null,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        if (isEdit)
+          TextButton(
+            onPressed: () => _showDeleteConfirmation(context, appState),
+            child: Text(
+              'Delete',
+              style: TextStyle(color: AppTheme.error),
+            ),
+          ),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(
+            'Cancel',
+            style: TextStyle(color: AppTheme.textSecondary),
+          ),
+        ),
+        ElevatedButton(
+          onPressed: () => _submit(appState),
+          child: Text(isEdit ? 'Save' : 'Register'),
+        ),
+      ],
+    );
   }
 }

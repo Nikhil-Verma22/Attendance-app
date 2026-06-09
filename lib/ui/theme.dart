@@ -148,8 +148,10 @@ class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
+      brightness: Brightness.dark,
       colorScheme: ColorScheme.fromSeed(
         seedColor: primary,
+        brightness: Brightness.dark,
         primary: primary,
         secondary: primary,
         surface: cardBg,

@@ -275,6 +275,30 @@ class AttendanceService {
     }
   }
 
+  Future<void> updateSessionNotes({
+    required String sessionId,
+    required String? notes,
+  }) async {
+    final idx = _sessions.indexWhere((s) => s.id == sessionId);
+    if (idx != -1) {
+      final old = _sessions[idx];
+      _sessions[idx] = ClassSession(
+        id: old.id,
+        subjectId: old.subjectId,
+        sessionDate: old.sessionDate,
+        sessionType: old.sessionType,
+        status: old.status,
+        attendanceStatus: old.attendanceStatus,
+        proofCount: old.proofCount,
+        notes: notes,
+        createdAt: old.createdAt,
+        updatedAt: DateTime.now(),
+      );
+      await saveData();
+    }
+  }
+
+
   // --- PROOF HANDLING ---
 
   Future<ProofImage> addProofImage({

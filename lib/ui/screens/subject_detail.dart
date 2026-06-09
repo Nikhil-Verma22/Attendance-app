@@ -21,6 +21,21 @@ class SubjectDetailScreen extends StatefulWidget {
 
 class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
   DateTime _currentMonth = DateTime.now();
+  late TextEditingController _noteController;
+  bool _isEditingNote = false;
+  DateTime? _lastSelectedDate;
+
+  @override
+  void initState() {
+    super.initState();
+    _noteController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _noteController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -92,6 +107,13 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
     final List<ProofImage> activeProofs = activeSession != null
         ? appState.getProofsForSession(activeSession.id)
         : [];
+
+    if (_lastSelectedDate != selectedDateOnly) {
+      _lastSelectedDate = selectedDateOnly;
+      _isEditingNote = false;
+      _noteController.text = activeSession?.notes ?? '';
+    }
+
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24.0, 12.0, 24.0, 24.0),
@@ -269,8 +291,16 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
                     activeSession,
                     activeProofs,
                   ),
+                  const SizedBox(height: 8.0),
+                  _buildNotesCard(
+                    context,
+                    appState,
+                    subject,
+                    activeSession,
+                  ),
                 ],
               );
+
 
               if (isLargeLayout) {
                 return Row(
@@ -752,6 +782,232 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> {
                 backgroundColor: AppTheme.primaryLight,
               ),
             ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  void _showClearConfirmationDialog(
+    BuildContext context,
+    AppState appState,
+    Subject subject,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppTheme.cardBg,
+          surfaceTintColor: AppTheme.transparent,
+          title: Text(
+            'Clear Lecture Note?',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+          content: Text(
+            'Are you sure you want to delete this lecture note? This action cannot be undone.',
+            style: TextStyle(color: AppTheme.textSecondary),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: AppTheme.textSecondary),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await appState.updateSessionNotes(
+                  subjectId: subject.id,
+                  date: appState.selectedDate,
+                  notes: null,
+                );
+                setState(() {
+                  _isEditingNote = false;
+                  _noteController.clear();
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.error,
+                foregroundColor: AppTheme.white,
+              ),
+              child: const Text('Clear'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildNotesCard(
+    BuildContext context,
+    AppState appState,
+    Subject subject,
+    ClassSession? activeSession,
+  ) {
+    final noteText = activeSession?.notes;
+    final hasNote = noteText != null && noteText.trim().isNotEmpty;
+
+    return Container(
+      padding: const EdgeInsets.all(20.0),
+      decoration: AppTheme.cardDecoration(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Lecture Note',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16.0,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+              if (!_isEditingNote && hasNote)
+                IconButton(
+                  icon: Icon(Icons.edit_outlined, size: 18.0, color: AppTheme.primary),
+                  onPressed: () {
+                    setState(() {
+                      _isEditingNote = true;
+                      _noteController.text = noteText;
+                    });
+                  },
+                ),
+            ],
+          ),
+          const SizedBox(height: 12.0),
+          if (_isEditingNote) ...[
+            TextField(
+              controller: _noteController,
+              maxLength: 500,
+              maxLines: 4,
+              style: TextStyle(color: AppTheme.textPrimary, fontSize: 14.0),
+              decoration: InputDecoration(
+                hintText: 'Add notes for this class (e.g. topics covered, homework, exam syllabus)...',
+                hintStyle: TextStyle(color: AppTheme.textSecondary.withOpacity(0.5)),
+                filled: true,
+                fillColor: AppTheme.backgroundEnd,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                  borderSide: BorderSide(color: AppTheme.neutralBorder),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                  borderSide: BorderSide(color: AppTheme.primary),
+                ),
+                contentPadding: const EdgeInsets.all(12.0),
+                counterStyle: TextStyle(color: AppTheme.textSecondary, fontSize: 10.0),
+              ),
+            ),
+            const SizedBox(height: 12.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (hasNote) ...[
+                  TextButton(
+                    onPressed: () => _showClearConfirmationDialog(context, appState, subject),
+                    child: Text('Clear', style: TextStyle(color: AppTheme.error)),
+                  ),
+                  const SizedBox(width: 8.0),
+                ],
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _isEditingNote = false;
+                      _noteController.text = noteText ?? '';
+                    });
+                  },
+                  child: Text('Cancel', style: TextStyle(color: AppTheme.textSecondary)),
+                ),
+                const SizedBox(width: 8.0),
+                ElevatedButton(
+                  onPressed: () async {
+                    await appState.updateSessionNotes(
+                      subjectId: subject.id,
+                      date: appState.selectedDate,
+                      notes: _noteController.text.trim().isEmpty ? null : _noteController.text.trim(),
+                    );
+                    setState(() {
+                      _isEditingNote = false;
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    minimumSize: const Size(60, 36),
+                  ),
+                  child: const Text('Save'),
+                ),
+              ],
+            ),
+          ] else ...[
+            if (hasNote)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12.0),
+                decoration: BoxDecoration(
+                  color: AppTheme.backgroundEnd,
+                  borderRadius: BorderRadius.circular(12.0),
+                  border: Border.all(color: AppTheme.neutralBorder.withOpacity(0.5)),
+                ),
+                child: Text(
+                  noteText,
+                  style: TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontSize: 14.0,
+                    height: 1.4,
+                  ),
+                ),
+              )
+            else ...[
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 20.0),
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: AppTheme.neutralBorder.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(14.0),
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.note_alt_outlined,
+                      color: AppTheme.textSecondary,
+                      size: 36.0,
+                    ),
+                    const SizedBox(height: 8.0),
+                    Text(
+                      'No lecture notes added',
+                      style: TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 12.0,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12.0),
+              TextButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _isEditingNote = true;
+                    _noteController.clear();
+                  });
+                },
+                icon: Icon(Icons.add_rounded, size: 18.0, color: AppTheme.primary),
+                label: Text('Add Lecture Note', style: TextStyle(color: AppTheme.primary)),
+                style: TextButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 44.0),
+                  backgroundColor: AppTheme.primaryLight,
+                ),
+              ),
+            ],
           ],
         ],
       ),
